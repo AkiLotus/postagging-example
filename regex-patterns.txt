@@ -1,0 +1,89 @@
+^[A-Z]
+Words with first letter capped
+
+^[^A-Za-z]*[0-9]+[^A-Za-z]*
+Number, possibly with some exotic characters accompanying (hyphens, minus, dash, slash, etc.)
+
+^[A-Za-z]{1,2}$
+Words with alphabetical letters only, length up to 2
+
+^[A-Za-z]{1,3}$
+Words with alphabetical letters only, length up to 3
+
+^[A-Za-z]{1,4}$
+Words with alphabetical letters only, length up to 4
+
+^[A-Za-z]{1,5}$
+Words with alphabetical letters only, length up to 5
+
+^[A-Za-z]{1,6}$
+Words with alphabetical letters only, length up to 6
+
+^[A-Za-z]{1,7}$
+Words with alphabetical letters only, length up to 7
+
+^[A-Za-z]{1,8}$
+Words with alphabetical letters only, length up to 8
+
+^[A-Za-z]+ity$
+Words ended with -ity suffix
+
+^[A-Za-z]+al$
+Words ended with -al suffix
+
+^[A-Za-z]+s$
+Words ended with -s suffix
+
+^[A-Za-z]+ed$
+Words ended with -ed suffix
+
+^[A-Za-z]+er$
+Words ended with -er suffix
+
+^[A-Za-z]+est$
+Words ended with -est suffix
+
+^[Ii]n[A-Za-z]+$
+Words started with in- prefix
+
+^[Ii]r[A-Za-z]+$
+Words started with ir- prefix
+
+^[Ii]m[A-Za-z]+$
+Words started with im- prefix
+
+^[Uu]n[A-Za-z]+$
+Words started with un- prefix
+
+^[D]e[A-Za-z]+$
+Words started with de- prefix
+
+^[D]is[A-Za-z]+$
+Words started with dis- prefix
+
+^[A-Za-z]+-[A-Za-z]+$
+Words with a single hyphen
+
+^[A-Za-z]+-(one|two|three|four|five|six|seven|eight|nine)$
+Words with a single hyphen followed by a number (possibly a two-digit number representation?)
+
+^[.!?]$
+SENT tag
+
+^[,]$
+Comma
+
+^[Ww][Hh]
+Words started with Wh-/wh-/WH-/wH-
+
+^[:;-]$
+Colons, hyphens, etc.
+
+^\'[Ss]$
+Possessive/tobe
+
+^[\'\"]$
+Quotation mark / apostrophe
+
+^[A-Za-z.]+\.$
+Words ending with a dot (possibly an abbreviation)
