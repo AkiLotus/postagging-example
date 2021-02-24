@@ -10,7 +10,7 @@ hmmt1 = pickle.load(open('hmmt_smooth1.mdlobj', 'rb'))
 pos_tags = list(hmmt1.pos_tags)
 pos_tags.sort(key=lambda x: hmmt1.pos_tags_mapping[x])
 confusion_matrix = np.zeros((len(pos_tags), len(pos_tags)))
-print(pos_tags)
+# print(pos_tags)
 
 valid_data = vlspr.read_valid()
 
@@ -65,8 +65,8 @@ for sentence in valid_data:
 	# print('Answer w/  beam in', '{:3.5f}'.format(time_smoothless_beamfull), 'seconds:', tagged_sentence)
 	# print ('With smoothing:')
 	# print('Answer w/o beam in', '{:3.5f}'.format(time_smoothfull_beamless), 'seconds:', tagged_sentence)
-	print('Answer w/  beam in', '{:3.5f}'.format(time_smoothfull_beamfull), 'seconds:', tagged_sentence)
-	print('Sentence accuracy = {:.5f}'.format(sentence_correct_tag / sentence_word))
+	# print('Answer w/  beam in', '{:3.5f}'.format(time_smoothfull_beamfull), 'seconds:', tagged_sentence)
+	# print('Sentence accuracy = {:.5f}'.format(sentence_correct_tag / sentence_word))
 	sentence_accuracies.append(sentence_correct_tag / sentence_word)
 
 print('{} sentences tagged.'.format(len(valid_data)))
@@ -93,8 +93,8 @@ tag_FN = np.zeros(len(pos_tags))
 
 for index in range(len(pos_tags)):
 	tag_TP[index] = confusion_matrix[index][index]
-	tag_FP[index] = np.sum(confusion_matrix[:, index]) - tag_TP[index]
-	tag_FN[index] = np.sum(confusion_matrix[index, :]) - tag_TP[index]
+	tag_FP[index] = np.sum(confusion_matrix[index, :]) - tag_TP[index]
+	tag_FN[index] = np.sum(confusion_matrix[:, index]) - tag_TP[index]
 	print('Tag =', pos_tags[index])
 	if tag_TP[index] > 0:
 		print('Precision = {:.5f}'.format(tag_TP[index] / (tag_TP[index] + tag_FP[index])))
