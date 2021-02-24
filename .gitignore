@@ -6,6 +6,7 @@ logs*.txt
 text*.txt
 *.mdlobj
 corpus/
+*_vlsp_pos/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

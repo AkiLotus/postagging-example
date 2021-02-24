@@ -39,7 +39,7 @@ class HMMTagger:
 	def reset_corpus(self):
 		self.__init__()
 	
-	def insert_corpus(self, filename):
+	def insert_corpus(self, sentences, logging=False):
 		# no insertion after finalized. if willing to, reset corpus
 		if type(self.pos_tags) is list: return
 
@@ -48,14 +48,10 @@ class HMMTagger:
 
 		document_wordset = set()
 
-		for line in open(filename, "r").readlines():
-			tokens = line.replace('\n', '').split()
+		for sentence in sentences:
 			last_tag = None
-			for token in tokens:
-				parts = token.split('/')
-				tag = parts[-1]
-				word = '/'.join(parts[:-1])
 
+			for word, tag in sentence:
 				self.glossary.add(word)
 				self.pos_tags.add(tag)
 
@@ -77,8 +73,10 @@ class HMMTagger:
 					if (word, tag) not in self.word2tag_document_frequencies:
 						self.word2tag_document_frequencies[(word, tag)] = 0
 					self.word2tag_document_frequencies[(word, tag)] += 1
+		
+		if logging: print('{} sentences added.'.format(len(sentences)))
 
-	def finalize_corpus(self):
+	def finalize_corpus(self, logging=False):
 		self.pos_tags_mapping = {}
 		self.glossary_mapping = {}
 
@@ -91,11 +89,11 @@ class HMMTagger:
 		for index in range(len(self.glossary)):
 			self.glossary_mapping[self.glossary[index]] = index
 
-		print('Finalizing done')
-		print('Glossary size:', len(self.glossary))
-		print('Glossary examples:', self.glossary[:15], '...', self.glossary[-15:])
-		print('POS tags size:', len(self.pos_tags))
-		print('POS tags:', self.pos_tags)
+		if logging:
+			print('Glossary size:', len(self.glossary))
+			# print('Glossary examples:', self.glossary[:15], '...', self.glossary[-15:])
+			print('POS tags size:', len(self.pos_tags))
+			print('POS tags:', self.pos_tags)
 	
 	def __get_log_probability_tag2tag(self, last_tag, tag):
 		if (last_tag, tag) in self.tag2tag_frequencies:
@@ -162,4 +160,6 @@ class HMMTagger:
 
 			assigned_tags[curr_token_index] = self.pos_tags[curr_tag_index]
 		
-		return ' '.join(['{}/{}'.format(tokens[index], assigned_tags[index]) for index in range(len(tokens))])
+		return assigned_tags
+		
+		# return ' '.join(['{}/{}'.format(tokens[index], assigned_tags[index]) for index in range(len(tokens))])
