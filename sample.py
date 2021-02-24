@@ -7,7 +7,12 @@ import numpy as np
 hmmt0 = pickle.load(open('hmmt_smooth0.mdlobj', 'rb'))
 hmmt1 = pickle.load(open('hmmt_smooth1.mdlobj', 'rb'))
 
-valid_data = vlspr.read_test()
+pos_tags = list(hmmt1.pos_tags)
+pos_tags.sort(key=lambda x: hmmt1.pos_tags_mapping[x])
+confusion_matrix = np.zeros((len(pos_tags), len(pos_tags)))
+print(pos_tags)
+
+valid_data = vlspr.read_valid()
 
 words_found = 0
 words_correctly_tagged = 0
@@ -47,7 +52,10 @@ for sentence in valid_data:
 
 	for index in range(len(tags)):
 		sentence_word += 1
-		sentence_correct_tag += 1 if tags[index] == assigned_tags[index] else 0
+		if tags[index] == assigned_tags[index]:
+			sentence_correct_tag += 1
+
+		confusion_matrix[hmmt1.pos_tags_mapping[assigned_tags[index]]][hmmt1.pos_tags_mapping[tags[index]]] += 1
 	
 	words_found += sentence_word
 	words_correctly_tagged += sentence_correct_tag
@@ -64,3 +72,33 @@ for sentence in valid_data:
 print('{} sentences tagged.'.format(len(valid_data)))
 print('Final accuracy by words     = {:.5f}'.format(words_correctly_tagged / words_found))
 print('Final accuracy by sentences = {:.5f}'.format(np.average(np.array(sentence_accuracies))))
+
+def print_row(row, spacing=5):
+	for item in row:
+		formatted_item = item
+		if type(item) is int:
+			formatted_item = str(item)
+		print(formatted_item + ' ' * (spacing - len(formatted_item)), end='')
+	print()
+
+print('Confusion matrix:')
+print_row([''] + pos_tags)
+for row_id in range(confusion_matrix.shape[0]):
+	print_row([pos_tags[row_id]] + list(map(int, confusion_matrix[row_id])))
+
+
+tag_TP = np.zeros(len(pos_tags))
+tag_FP = np.zeros(len(pos_tags))
+tag_FN = np.zeros(len(pos_tags))
+
+for index in range(len(pos_tags)):
+	tag_TP[index] = confusion_matrix[index][index]
+	tag_FP[index] = np.sum(confusion_matrix[:, index]) - tag_TP[index]
+	tag_FN[index] = np.sum(confusion_matrix[index, :]) - tag_TP[index]
+	print('Tag =', pos_tags[index])
+	if tag_TP[index] > 0:
+		print('Precision = {:.5f}'.format(tag_TP[index] / (tag_TP[index] + tag_FP[index])))
+		print('Recall    = {:.5f}'.format(tag_TP[index] / (tag_TP[index] + tag_FN[index])))
+		print('F1-score  = {:.5f}'.format(2 * tag_TP[index] / (2 * tag_TP[index] + tag_FP[index] + tag_FN[index])))
+	else:
+		print('Invalid, due to zero True Positive')
