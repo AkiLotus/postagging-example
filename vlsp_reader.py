@@ -1,6 +1,7 @@
 TRAIN_FILE = '06_vlsp_pos/viettreebank_train.pos.conll'
 VALID_FILE = '06_vlsp_pos/viettreebank_valid.pos.conll'
 TEST_FILE = '06_vlsp_pos/viettreebank_test.pos.conll'
+MINI_FILE = '06_vlsp_pos/mini_data.pos.conll'
 
 def read_file(filename):
 	file = open(filename, mode='r')
@@ -34,3 +35,4 @@ def read_file(filename):
 def read_train(): return read_file(TRAIN_FILE)
 def read_valid(): return read_file(VALID_FILE)
 def read_test(): return read_file(TEST_FILE)
+def read_mini(): return read_file(MINI_FILE)

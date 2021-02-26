@@ -1,12 +1,7 @@
+import re, heapq
 import numpy as np
-import scipy.special
-import re
-import heapq
-
-# sigmoid = lambda x: 1.0 / (1.0 + np.exp(-x))
-sigmoid = lambda x: scipy.special.expit(x)
-softmax = lambda x: scipy.special.softmax(x, axis=1)
-__default_seed__ = 170299
+from logistic_regression import MultinomialLogisticRegressionClassifier
+from sklearn.linear_model import LogisticRegression
 
 START_TAG = 'STG'
 START_SYMBOL = '^start^'
@@ -173,83 +168,78 @@ class HMMTagger:
 		# return ' '.join(['{}/{}'.format(tokens[index], assigned_tags[index]) for index in range(len(tokens))])
 
 
-def create_feature_vector(word, word_back_1, word_back_2, tag, tag_back_1, tag_back_2, glossary_mapping, pos_tags_mapping):
-	glossary_count = len(glossary_mapping.keys())
-	pos_tags_count = len(pos_tags_mapping.keys())
-	feature_vector = [0 for _ in range(glossary_count * 3 * pos_tags_count + pos_tags_count ** 2 + pos_tags_count ** 3 + 4 * glossary_count * pos_tags_count)]
-
-	offset = 0
-	if word in glossary_mapping:
-		feature_vector[offset + glossary_mapping[word] * pos_tags_count + pos_tags_mapping[tag]] = 1
-	
-	offset += glossary_count * pos_tags_count
-	if word_back_1 in glossary_mapping:
-		feature_vector[offset + glossary_mapping[word_back_1] * pos_tags_count + pos_tags_mapping[tag]] = 1
-	
-	offset += glossary_count * pos_tags_count
-	if word_back_2 in glossary_mapping:
-		feature_vector[offset + glossary_mapping[word_back_2] * pos_tags_count + pos_tags_mapping[tag]] = 1
-	
-	offset += glossary_count * pos_tags_count
-	feature_vector[offset + pos_tags_mapping[tag_back_1] * pos_tags_count + pos_tags_mapping[tag]] = 1
-	
-	offset += pos_tags_count ** 2
-	feature_vector[offset + pos_tags_mapping[tag_back_2] * pos_tags_count * pos_tags_count + pos_tags_mapping[tag_back_1] * pos_tags_count + pos_tags_mapping[tag]] = 1
-
-	offset += pos_tags_count ** 3
-	if re.match('^.*[0-9].*$', word):
-		feature_vector[offset + pos_tags_mapping[tag]] = 1
-
-	offset += pos_tags_count
-	if re.match('^.*[A-Z].*$', word):
-		feature_vector[offset + pos_tags_mapping[tag]] = 1
-
-	offset += pos_tags_count
-	if re.match('^.*[a-z].*$', word):
-		feature_vector[offset + pos_tags_mapping[tag]] = 1
-
-	offset += pos_tags_count
-	if re.match('^.*-.*$', word):
-		feature_vector[offset + pos_tags_mapping[tag]] = 1
-
-	return feature_vector
-
 class MEMMTagger:
-	def __init__(self, smoothing = False, learning_rate = 0.2, regularization_lambda = 0.4, seed=__default_seed__):
-		self.smoothing = smoothing
+	def __init__(self, learning_rate):
 		self.learning_rate = learning_rate
-		self.regularization_lambda = regularization_lambda
-		self._seed = seed
-		np.random.seed(seed)
 
 		self.pos_tags = set()
 		self.glossary = set()
 		self.pos_tags_mapping = None
 		self.glossary_mapping = None
 
-		self.parameters = None
+		self.mlrc_classifier = None
 	
 	def reset_corpus(self):
 		self.__init__()
-	
-	def fit(self, feature_vectors, labels, iterations=1000, regularizing_metric=None):
-		feature_vectors = np.array(feature_vectors)
-		labels = np.array(labels)
-		label_vectors = np.zeros((labels.shape[0], len(self.pos_tags)))
-		for row_id in range(labels.shape[0]):
-			label_vectors[row_id][labels[row_id]] = 1
-		
-		self.parameters = np.random.rand(feature_vectors.shape[1], 1)
 
-		for iter in range(iterations):
-			parameter_gradient = ...
+	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
+		glossary_count = len(self.glossary_mapping.keys())
+		pos_tags_count = len(self.pos_tags_mapping.keys())
+		feature_vector = [0 for _ in range(glossary_count * 3 + pos_tags_count + pos_tags_count ** 2 + 6)]
+
+		offset = 0
+		if word in self.glossary_mapping:
+			feature_vector[offset + self.glossary_mapping[word]] = 1
+		
+		offset += 1
+		if word_back_1 in self.glossary_mapping:
+			feature_vector[offset + self.glossary_mapping[word_back_1]] = 1
+		
+		offset += 1
+		if word_back_2 in self.glossary_mapping:
+			feature_vector[offset + self.glossary_mapping[word_back_2]] = 1
+		
+		offset += 1
+		feature_vector[offset + self.pos_tags_mapping[tag_back_1]] = 1
+		
+		offset += pos_tags_count
+		feature_vector[offset + self.pos_tags_mapping[tag_back_2] * pos_tags_count + self.pos_tags_mapping[tag_back_1]] = 1
+
+		offset += pos_tags_count ** 2
+		if re.match('^.*[0-9].*$', word):
+			feature_vector[offset] = 1
+
+		offset += 1
+		if re.match('^.*[A-Z].*$', word):
+			feature_vector[offset] = 1
+
+		offset += 1
+		if re.match('^[A-Z].*$', word):
+			feature_vector[offset] = 1
+
+		offset += 1
+		if re.match('^.*[a-z].*$', word):
+			feature_vector[offset] = 1
+
+		offset += 1
+		if re.match('^.*[^0-9A-Za-z].*$', word):
+			feature_vector[offset] = 1
+
+		offset += 1
+		if re.match('^.*-.*$', word):
+			feature_vector[offset] = 1
+
+		return feature_vector
 	
 	def insert_corpus(self, sentences, logging=False):
 		# no insertion after fit. if willing to, reset corpus
 		if type(self.pos_tags) is list: return
 
+		word_count = 0
+
 		for sentence in sentences:
 			for word, tag in sentence:
+				word_count += 1
 				self.glossary.add(word)
 				self.pos_tags.add(tag)
 		
@@ -267,6 +257,7 @@ class MEMMTagger:
 
 		if logging:
 			print('{} sentences added.'.format(len(sentences)))
+			print('{} words processed.'.format(word_count))
 			print('Glossary size:', len(self.glossary) - 1)
 			# print('Glossary examples:', self.glossary[:15], '...', self.glossary[-15:])
 			print('POS tags size:', len(self.pos_tags) - 1)
@@ -275,44 +266,54 @@ class MEMMTagger:
 		feature_vectors = []
 		tags = []
 
+		count = 0
+		self.mlrc_classifier = MultinomialLogisticRegressionClassifier(learning_rate = self.learning_rate, label_names = self.pos_tags)
+		print(len(self.mlrc_classifier.label_names))
+
 		for sentence in sentences:
 			for index in range(len(sentence)):
 				word, tag = sentence[index]
 				word_back_1 = sentence[index - 1][0] if index > 0 else START_SYMBOL
 				word_back_2 = sentence[index - 2][0] if index > 1 else START_SYMBOL
-				tag_back_1 = sentence[index - 1][0] if index > 0 else START_TAG
-				tag_back_2 = sentence[index - 2][0] if index > 1 else START_TAG
+				tag_back_1 = sentence[index - 1][1] if index > 0 else START_TAG
+				tag_back_2 = sentence[index - 2][1] if index > 1 else START_TAG
 
-				feature_vector = create_feature_vector(word, word_back_1, word_back_2, tag, tag_back_1, tag_back_2, self.glossary_mapping, self.pos_tags_mapping)
+				# print(word, word_back_1, word_back_2, tag_back_1, tag_back_2)
+				feature_vector = self.create_feature_vector(word, word_back_1, word_back_2, tag_back_1, tag_back_2)
 
 				feature_vectors.append(feature_vector)
-				tags.append(self.pos_tags_mapping[tag])
+				tags.append(tag)
 
-		self.fit(feature_vectors, tags)
+				if (len(feature_vectors) % 1000 == 0):
+					count += 1000
+					print('Processed examples =', count)
+					tags = np.array(tags).reshape((len(tags), 1))
+					print(len(feature_vectors), len(feature_vectors[0]), len(tags))
+					self.mlrc_classifier.fit(feature_vectors, tags)
+					feature_vectors = []
+					tags = []
+		
+		if len(feature_vectors) > 0:
+			count += len(feature_vectors)
+			print('Processed examples =', count)
+			tags = np.array(tags).reshape((len(tags), 1))
+			self.mlrc_classifier.fit(feature_vectors, tags)
+			feature_vectors = []
+			tags = []
+
+		# tags = np.array(tags)
+		# tags = tags.reshape((tags.shape[0], 1))
+		# self.mlrc_classifier.fit(feature_vectors, tags)
 	
-	def __get_log_probability_tag2tag(self, last_tag, tag):
-		if (last_tag, tag) in self.tag2tag_frequencies:
-			if not self.smoothing:
-				return np.log(self.tag2tag_frequencies[(last_tag, tag)] / self.tag2tag_count)
-			else:
-				return np.log((self.tag2tag_frequencies[(last_tag, tag)] + 1) / (self.tag2tag_count + len(self.pos_tags) * len(self.pos_tags)))
-		else:
-			if not self.smoothing:
-				return -np.inf
-			else:
-				return np.log(1.0 / (self.tag2tag_count + len(self.pos_tags) * len(self.pos_tags)))
-	
-	def __get_log_probability_word2tag(self, token, tag):
-		if (token, tag) in self.word2tag_frequencies:
-			if not self.smoothing:
-				return np.log(self.word2tag_frequencies[(token, tag)] / self.word2tag_count)
-			else:
-				return np.log((self.word2tag_frequencies[(token, tag)] + 1) / (self.word2tag_count + len(self.glossary) * len(self.pos_tags)))
-		else:
-			if not self.smoothing:
-				return -np.inf
-			else:
-				return np.log(1.0 / (self.word2tag_count + len(self.glossary) * len(self.pos_tags)))
+	def __get_log_probability(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
+		tag_back_1 = self.pos_tags[tag_back_1]
+		tag_back_2 = self.pos_tags[tag_back_2]
+		feature_vector = self.create_feature_vector(word, word_back_1, word_back_2, tag_back_1, tag_back_2)
+		feature_vector = np.array(feature_vector).reshape((1, len(feature_vector)))
+		
+		prediction = self.mlrc_classifier.predict(feature_vector, rounded=False, displayed=False)
+		# prediction = self.mlrc_classifier.predict_proba(feature_vector)
+		return prediction
 	
 	def assign_tags(self, tokens, beam_search = np.inf):
 		# DP through Viterbi algorithm, applied beam search
@@ -321,27 +322,33 @@ class MEMMTagger:
 
 		beam_heap = LimitedMinheap(max_capacity=beam_search)
 
-		for tag_index in range(len(self.pos_tags)):
-			best_prob[0][tag_index] = self.__get_log_probability_word2tag(tokens[0], self.pos_tags[tag_index])
-			if best_prob[0][tag_index] > -np.inf: beam_heap.insert((best_prob[0][tag_index], tag_index))
+		log_probabilities = {}
 
-		for token_index in range(1, len(tokens)):
+		beam_heap.insert((0, self.pos_tags_mapping[START_TAG], self.pos_tags_mapping[START_TAG]))
+
+		for token_index in range(0, len(tokens)):
 			best_candidates = beam_heap.to_array()
 			beam_heap.clear()
 
 			for tag_index in range(len(self.pos_tags)):
 				found_better = False
-				for _, last_tag_index in best_candidates:
-					new_prob = best_prob[token_index-1][last_tag_index]
-					new_prob += self.__get_log_probability_word2tag(tokens[token_index], self.pos_tags[tag_index])
-					new_prob += self.__get_log_probability_tag2tag(self.pos_tags[last_tag_index], self.pos_tags[tag_index])
+				for temporal_best, tag_back_2, tag_back_1 in best_candidates:
+					new_prob = temporal_best
+					word = tokens[token_index]
+					word_back_1 = tokens[token_index - 1] if token_index > 0 else START_SYMBOL
+					word_back_2 = tokens[token_index - 2] if token_index > 1 else START_SYMBOL
+
+					if (word, word_back_1, word_back_2, tag_back_1, tag_back_2) not in log_probabilities:
+						log_probabilities[(word, word_back_1, word_back_2, tag_back_1, tag_back_2)] = self.__get_log_probability(word, word_back_1, word_back_2, tag_back_1, tag_back_2)
+					
+					new_prob += log_probabilities[(word, word_back_1, word_back_2, tag_back_1, tag_back_2)][0][self.mlrc_classifier.label_names.index(self.pos_tags[tag_index])]
 
 					if new_prob > best_prob[token_index][tag_index]:
 						best_prob[token_index][tag_index] = new_prob
-						best_path[token_index][tag_index] = (token_index - 1, last_tag_index)
+						best_path[token_index][tag_index] = (token_index - 1, tag_back_1)
 						found_better = True
 				
-				if found_better: beam_heap.insert((best_prob[token_index][tag_index], tag_index))
+				if found_better: beam_heap.insert((best_prob[token_index][tag_index], tag_back_1, tag_index))
 		
 		assigned_tags = [None for _ in tokens]
 		curr_tag_index = np.argmax(best_prob[len(tokens)-1])
@@ -350,6 +357,7 @@ class MEMMTagger:
 
 		while best_path[curr_token_index][curr_tag_index] is not None:
 			curr_token_index, curr_tag_index = best_path[curr_token_index][curr_tag_index]
+			if curr_token_index < 0: break
 
 			assigned_tags[curr_token_index] = self.pos_tags[curr_tag_index]
 		
