@@ -11,4 +11,8 @@ Just a random POS tagging repository, solely for educational purposes...
    - Details on how the dataset is read can be found on the `vlsp_reader.py` file.
    - Sample HMM's tagging result can be found on [this Gist](https://gist.github.com/AkiLotus/7816e26e7caa53f6cd1e9fe64318f735).
 2. Maximum Entropy Markov Model (MEMM):
-   - Currently working...
+   - Run `python3 pretrain_model_memm.py` to train the model and save it in pickle dump format.
+   - Run `python3 sample_memm.py` to load the pre-trained model and test it with the cross-validation file. Beam-search is included for the sake of comparison.
+   - Details on how the dataset is read can be found on the `vlsp_reader.py` file.
+   - Sample HMM's tagging result currently being worked on.
+3. Models analysis: currently being worked on...
