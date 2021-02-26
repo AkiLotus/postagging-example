@@ -14,5 +14,5 @@ Just a random POS tagging repository, solely for educational purposes...
    - Run `python3 pretrain_model_memm.py` to train the model and save it in pickle dump format.
    - Run `python3 sample_memm.py` to load the pre-trained model and test it with the cross-validation file. Beam-search is included for the sake of comparison.
    - Details on how the dataset is read can be found on the `vlsp_reader.py` file.
-   - Sample HMM's tagging result currently being worked on.
+   - Sample MEMM's tagging result currently being worked on.
 3. Models analysis: currently being worked on...
