@@ -190,44 +190,45 @@ class MEMMTagger:
 		offset = 0
 		if word in self.glossary_mapping:
 			feature_vector[offset + self.glossary_mapping[word]] = 1
-		
-		offset += 1
+		offset += glossary_count
+
 		if word_back_1 in self.glossary_mapping:
 			feature_vector[offset + self.glossary_mapping[word_back_1]] = 1
-		
-		offset += 1
+		offset += glossary_count
+
 		if word_back_2 in self.glossary_mapping:
 			feature_vector[offset + self.glossary_mapping[word_back_2]] = 1
-		
-		offset += 1
+		offset += glossary_count
+
 		feature_vector[offset + self.pos_tags_mapping[tag_back_1]] = 1
-		
 		offset += pos_tags_count
+
 		feature_vector[offset + self.pos_tags_mapping[tag_back_2] * pos_tags_count + self.pos_tags_mapping[tag_back_1]] = 1
-
 		offset += pos_tags_count ** 2
-		if re.match('^.*[0-9].*$', word):
-			feature_vector[offset] = 1
 
-		offset += 1
 		if re.match('^.*[A-Z].*$', word):
 			feature_vector[offset] = 1
-
 		offset += 1
-		if re.match('^[A-Z].*$', word):
-			feature_vector[offset] = 1
 
-		offset += 1
 		if re.match('^.*[a-z].*$', word):
 			feature_vector[offset] = 1
-
 		offset += 1
-		if re.match('^.*[^0-9A-Za-z].*$', word):
+
+		if re.match('^.*[0-9].*$', word):
 			feature_vector[offset] = 1
-
 		offset += 1
+
+		if re.match('^[A-Z].*$', word):
+			feature_vector[offset] = 1
+		offset += 1
+
 		if re.match('^.*-.*$', word):
 			feature_vector[offset] = 1
+		offset += 1
+
+		if re.match('^.*[^0-9A-Za-z].*$', word):
+			feature_vector[offset] = 1
+		offset += 1
 
 		return feature_vector
 	
