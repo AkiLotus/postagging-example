@@ -234,7 +234,7 @@ class MEMMTagger:
 
 		return feature_vector
 	
-	def insert_corpus(self, sentences, logging=False):
+	def insert_corpus(self, sentences, logging=False, mini_batch_size=256):
 		# no insertion after fit. if willing to, reset corpus
 		if type(self.pos_tags) is list: return
 
@@ -277,6 +277,9 @@ class MEMMTagger:
 		print(len(self.mlrc_classifier.label_names))
 
 		time0 = time.time()
+
+		if mini_batch_size is None: mini_batch_size = word_count
+
 		for sentence in sentences:
 			for index in range(len(sentence)):
 				word, tag = sentence[index]
@@ -291,25 +294,26 @@ class MEMMTagger:
 				feature_vectors.append(feature_vector)
 				tags.append(tag)
 
-				if (len(feature_vectors) % 1000 == 0):
-					count += 1000
+				if (len(feature_vectors) % mini_batch_size == 0):
+					count += mini_batch_size
 					print('Processed examples =', count)
 					tags = np.array(tags).reshape((len(tags), 1))
 					# print(len(feature_vectors), len(feature_vectors[0]), len(tags))
 
 					cost_log = self.mlrc_classifier.fit(feature_vectors, tags, return_cost=True)
-					full_logs += [(cost, timestamp + count) for cost, timestamp in cost_log]
+					full_logs += [(cost, timestamp + (count - mini_batch_size) // mini_batch_size * (len(cost_log) - 1)) for cost, timestamp in cost_log]
 
 					feature_vectors = []
 					tags = []
 		
 		if len(feature_vectors) > 0:
-			count += len(feature_vectors)
+			remnants = len(feature_vectors)
+			count += remnants
 			print('Processed examples =', count)
 			tags = np.array(tags).reshape((len(tags), 1))
 			
 			cost_log = self.mlrc_classifier.fit(feature_vectors, tags, return_cost=True)
-			full_logs += [(cost, timestamp + count) for cost, timestamp in cost_log]
+			full_logs += [(cost, timestamp + (count - remnants) // mini_batch_size * (len(cost_log) - 1)) for cost, timestamp in cost_log]
 					
 			feature_vectors = []
 			tags = []
@@ -322,6 +326,8 @@ class MEMMTagger:
 		training_time = time1 - time0
 
 		result = TrainingResult(training_time, full_logs)
+		print('Total training time = {:.5f} seconds.'.format(training_time))
+		return result
 	
 	def __get_log_probability(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		tag_back_1 = self.pos_tags[tag_back_1]

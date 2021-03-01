@@ -5,7 +5,7 @@ import pickle
 import vlsp_reader as vlspr
 import pipeline.memm
 
-train_data = vlspr.read_train()
+train_data = vlspr.read_valid()
 pipeline_id = int(argv[1]) if len(argv) > 1 else 0
 
 memmt = MEMMTagger(learning_rate = 4 * 1e-3)
@@ -33,7 +33,10 @@ if pipeline_id == 10:
 if pipeline_id == 11:
 	memmt = pipeline.memm.PipelineTagger_11()
 
-memmt.insert_corpus(train_data, logging=True)
+trainres = memmt.insert_corpus(train_data, logging=True)
 
-pickle_file = open("models/memmt-pipeline{}.mdlobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)), "wb")
-model_object = pickle.dump(memmt, pickle_file)
+pickle_model = open("models/memmt-pipeline{}.mdlobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)), "wb")
+model_object = pickle.dump(memmt, pickle_model)
+
+pickle_logs = open("results/memmt-pipeline{}-trainlogs.logobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)), "wb")
+logs_object = pickle.dump(trainres, pickle_logs)
