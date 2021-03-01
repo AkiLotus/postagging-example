@@ -3,7 +3,7 @@ import numpy as np
 from logistic_regression import MultinomialLogisticRegressionClassifier
 from sklearn.linear_model import LogisticRegression
 
-START_TAG = 'STG'
+START_TAG = '^STG^'
 START_SYMBOL = '^start^'
 
 class LimitedMinheap:
@@ -86,6 +86,7 @@ class HMMTagger:
 		self.glossary_mapping = {}
 
 		self.pos_tags = list(self.pos_tags)
+		self.pos_tags.sort()
 		self.glossary = list(self.glossary)
 
 		for index in range(len(self.pos_tags)):
@@ -248,6 +249,7 @@ class MEMMTagger:
 		self.glossary_mapping = {}
 
 		self.pos_tags = [START_TAG] + list(self.pos_tags)
+		self.pos_tags.sort()
 		self.glossary = [START_SYMBOL] + list(self.glossary)
 
 		for index in range(len(self.pos_tags)):

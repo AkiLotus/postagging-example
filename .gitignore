@@ -3,6 +3,9 @@
 *.png
 *.csv
 logs*.txt
+logs/
+models/
+results/
 text*.txt
 *.mdlobj
 corpus/
