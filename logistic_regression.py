@@ -195,10 +195,12 @@ class MultinomialLogisticRegressionClassifier:
 		return cost
 
 	
-	def fit(self, feature_matrix, output_vector, iterations=100, regularizing_metric=None):
+	def fit(self, feature_matrix, output_vector, iterations=100, regularizing_metric=None, return_cost=False):
 		assert(len(np.shape(feature_matrix)) == 2)
 		assert(len(np.shape(output_vector)) == 2)
 		assert(np.shape(feature_matrix)[0] == np.shape(output_vector)[0])
+
+		cost_logs = []
 
 		if not self.preset_labels:
 			temporal_set = set(output_vector.flatten().tolist())
@@ -215,9 +217,11 @@ class MultinomialLogisticRegressionClassifier:
 			self.bias = (np.random.rand(len(self.label_names),) - 0.5) * 1
 		m = np.shape(feature_matrix)[0]
 
-		print(self.weight_vector)
-		print(self.bias)
-		print('iteration #0... cost = {}'.format(self.__total_cost(feature_matrix, output_matrix) / m))
+		# print(self.weight_vector)
+		# print(self.bias)
+		current_cost = self.__total_cost(feature_matrix, output_matrix) / m
+		print('iteration #0... cost = {}'.format(current_cost))
+		if return_cost: cost_logs.append((current_cost, __epsilon__))
 
 		# print('initial weights:', self.weight_vector, self.bias)
 		for iter in range(iterations):
@@ -230,11 +234,15 @@ class MultinomialLogisticRegressionClassifier:
 
 			self.weight_vector = self.weight_vector - self.learning_rate * weight_vector_gradient
 			self.bias = self.bias - self.learning_rate * bias_gradient
-			print('weight change:', weight_vector_gradient * self.learning_rate)
-			print('bias change:', bias_gradient * self.learning_rate)
-			print('iteration #{}... cost = {}'.format(iter+1, self.__total_cost(feature_matrix, output_matrix) / m))
+			# print('weight change:', weight_vector_gradient * self.learning_rate)
+			# print('bias change:', bias_gradient * self.learning_rate)
+			current_cost = self.__total_cost(feature_matrix, output_matrix) / m
+			print('iteration #{}... cost = {}'.format(iter+1, current_cost))
+			if return_cost: cost_logs.append((current_cost, iter+1))
 			# if ((iter+1) % 100 == 0): print('iteration #{}...'.format(iter+1))
 			# print('iteration #{}: {}, {}'.format(iter+1, self.weight_vector, self.bias))
+		
+		if return_cost: return cost_logs
 
 	def predict(self, feature_matrix, rounded=True, displayed=True):
 		assert(len(np.shape(feature_matrix)) == 2)

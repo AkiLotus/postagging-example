@@ -1,6 +1,12 @@
 import numpy as np
 import time
 
+class TrainingResult:
+	def __init__(self, training_time, cost_logs):
+		self.time_elapsed = training_time
+		self.costs = [x for x, _ in cost_logs]
+		self.timestamps = [y for _, y in cost_logs]
+
 class EvaluationResult:
 	def __init__(self, pos_tags):
 		self.tags = pos_tags

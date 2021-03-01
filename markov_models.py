@@ -1,4 +1,5 @@
-import re, heapq
+import re, heapq, time
+from utilities import TrainingResult
 import numpy as np
 from logistic_regression import MultinomialLogisticRegressionClassifier
 from sklearn.linear_model import LogisticRegression
@@ -269,10 +270,13 @@ class MEMMTagger:
 		feature_vectors = []
 		tags = []
 
+		full_logs = []
+
 		count = 0
 		self.mlrc_classifier = MultinomialLogisticRegressionClassifier(learning_rate = self.learning_rate, label_names = self.pos_tags)
 		print(len(self.mlrc_classifier.label_names))
 
+		time0 = time.time()
 		for sentence in sentences:
 			for index in range(len(sentence)):
 				word, tag = sentence[index]
@@ -291,8 +295,11 @@ class MEMMTagger:
 					count += 1000
 					print('Processed examples =', count)
 					tags = np.array(tags).reshape((len(tags), 1))
-					print(len(feature_vectors), len(feature_vectors[0]), len(tags))
-					self.mlrc_classifier.fit(feature_vectors, tags)
+					# print(len(feature_vectors), len(feature_vectors[0]), len(tags))
+
+					cost_log = self.mlrc_classifier.fit(feature_vectors, tags, return_cost=True)
+					full_logs += [(cost, timestamp + count) for cost, timestamp in cost_log]
+
 					feature_vectors = []
 					tags = []
 		
@@ -300,13 +307,21 @@ class MEMMTagger:
 			count += len(feature_vectors)
 			print('Processed examples =', count)
 			tags = np.array(tags).reshape((len(tags), 1))
-			self.mlrc_classifier.fit(feature_vectors, tags)
+			
+			cost_log = self.mlrc_classifier.fit(feature_vectors, tags, return_cost=True)
+			full_logs += [(cost, timestamp + count) for cost, timestamp in cost_log]
+					
 			feature_vectors = []
 			tags = []
 
 		# tags = np.array(tags)
 		# tags = tags.reshape((tags.shape[0], 1))
 		# self.mlrc_classifier.fit(feature_vectors, tags)
+
+		time1 = time.time()
+		training_time = time1 - time0
+
+		result = TrainingResult(training_time, full_logs)
 	
 	def __get_log_probability(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		tag_back_1 = self.pos_tags[tag_back_1]
