@@ -1,11 +1,11 @@
 from markov_models import MEMMTagger
 
 from sys import argv
-import pickle
+import joblib
 import vlsp_reader as vlspr
 import pipeline.memm
 
-train_data = vlspr.read_valid()
+train_data = vlspr.read_train()
 pipeline_id = int(argv[1]) if len(argv) > 1 else 0
 
 memmt = MEMMTagger(learning_rate = 4 * 1e-3)
@@ -35,8 +35,8 @@ if pipeline_id == 11:
 
 trainres = memmt.insert_corpus(train_data, logging=True)
 
-pickle_model = open("models/memmt-pipeline{}.mdlobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)), "wb")
-model_object = pickle.dump(memmt, pickle_model)
+model_file = "models/memmt-pipeline{}.mdlobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id))
+model_object = joblib.dump(memmt, model_file)
 
-pickle_logs = open("results/memmt-pipeline{}-trainlogs.logobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)), "wb")
-logs_object = pickle.dump(trainres, pickle_logs)
+log_file = "results/memmt-pipeline{}-trainlogs.logobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id))
+logs_object = joblib.dump(trainres, log_file)
