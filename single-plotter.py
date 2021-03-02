@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
-import pickle
+import joblib
 
 pipeline_id = 1
 
-trainlogs_memmt_01 = pickle.load(open("results/memmt-pipeline{}-trainlogs.logobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)), "rb"))
+trainlogs_memmt_01 = joblib.load("results/memmt-pipeline{}-trainlogs.logobj".format(('0' if pipeline_id < 10 else '') + str(pipeline_id)))
 
 plt.title('Error-through-iteration plot: MEMMTagger of Pipeline {} / Stochastic GD'.format(('0' if pipeline_id < 10 else '') + str(pipeline_id)))
 plt.xlabel('Iteration timestamp')
