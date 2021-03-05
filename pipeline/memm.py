@@ -2,6 +2,8 @@ import sys, re
 sys.path.append("../")
 from markov_models import MEMMTagger
 
+__learning_rate__ = 0.015
+
 # Pipeline 1: only current word and previous tag, theoretically equivalent in feature set to HMM
 # Pipeline 2: Pipeline 1 + previous word (full bigram features)
 # Pipeline 3: Pipeline 2 + 2nd previous word/tag (full trigram features)
@@ -16,7 +18,7 @@ from markov_models import MEMMTagger
 
 class PipelineTagger_01(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 1: only current word and previous tag, theoretically equivalent in feature set to HMM
@@ -37,7 +39,7 @@ class PipelineTagger_01(MEMMTagger):
 
 class PipelineTagger_02(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 2: Pipeline 1 + previous word (full bigram features)
@@ -61,7 +63,7 @@ class PipelineTagger_02(MEMMTagger):
 
 class PipelineTagger_03(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 3: Pipeline 2 + 2nd previous word/tag (full trigram features)
@@ -92,7 +94,7 @@ class PipelineTagger_03(MEMMTagger):
 
 class PipelineTagger_04(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 4: Pipeline 3 + check for uppercase/lowercase letters in a word
@@ -131,7 +133,7 @@ class PipelineTagger_04(MEMMTagger):
 
 class PipelineTagger_05(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 5: Pipeline 4 + check for digit character
@@ -174,7 +176,7 @@ class PipelineTagger_05(MEMMTagger):
 
 class PipelineTagger_06(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 6: Pipeline 5 + check for uppercase letter beginning a word
@@ -221,7 +223,7 @@ class PipelineTagger_06(MEMMTagger):
 
 class PipelineTagger_07(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 7: Pipeline 6 + check for hyphens in a word
@@ -272,7 +274,7 @@ class PipelineTagger_07(MEMMTagger):
 
 class PipelineTagger_08(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 8: Pipeline 7 + check for special characters in a word (full model from revision 2021-02-28)
@@ -327,7 +329,7 @@ class PipelineTagger_08(MEMMTagger):
 
 class PipelineTagger_09(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 9: Pipeline 8 + check if the number of syllables in a word is greater than 2 (which is more likely to be an NNP)
@@ -387,7 +389,7 @@ class PipelineTagger_09(MEMMTagger):
 
 class PipelineTagger_10(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 10: Pipeline 9 + check if all syllables of the word are capitalized (which is more likely to be an NNP)
@@ -453,7 +455,7 @@ class PipelineTagger_10(MEMMTagger):
 
 class PipelineTagger_11(MEMMTagger):
 	def __init__(self):
-		MEMMTagger.__init__(self, learning_rate = 4e-3)
+		MEMMTagger.__init__(self, learning_rate = __learning_rate__)
 
 	def create_feature_vector(self, word, word_back_1, word_back_2, tag_back_1, tag_back_2):
 		# Pipeline 11: Pipeline 10 + check if containing foreign characters for Vietnamese (F, J, W, Z)

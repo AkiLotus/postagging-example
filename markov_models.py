@@ -171,7 +171,7 @@ class HMMTagger:
 
 
 class MEMMTagger:
-	def __init__(self, learning_rate):
+	def __init__(self, learning_rate = MultinomialLogisticRegressionClassifier().learning_rate):
 		self.learning_rate = learning_rate
 
 		self.pos_tags = set()
@@ -234,7 +234,7 @@ class MEMMTagger:
 
 		return feature_vector
 	
-	def insert_corpus(self, sentences, logging=False, mini_batch_size=256):
+	def insert_corpus(self, sentences, logging=False, mini_batch_size=1024):
 		# no insertion after fit. if willing to, reset corpus
 		if type(self.pos_tags) is list: return
 

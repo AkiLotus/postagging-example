@@ -7,6 +7,12 @@ softmax = lambda x: scipy.special.softmax(x, axis=1)
 __default_seed__ = 170299
 __epsilon__ = 10 ** -6
 
+def relative_error(x, y):
+	return np.abs(x - y) / np.abs(x)
+
+def absolute_error(x, y):
+	return np.abs(x - y)
+
 def cost_function(expected, reality):
 	# it's a bernoulli thing
 	return -expected * np.log(reality + __epsilon__) - (1 - expected) * np.log(1 - reality - __epsilon__)
@@ -169,9 +175,10 @@ class BinaryLogisticRegressionClassifier:
 
 
 class MultinomialLogisticRegressionClassifier:
-	def __init__(self, label_names = None, learning_rate = 1e-3, regularization_lambda = 1.0, seed=__default_seed__):
+	def __init__(self, label_names = None, learning_rate = 1e-3, regularization_lambda = 1.0, absolute_tolerance = 1e-4, seed=__default_seed__):
 		self.learning_rate = learning_rate
 		self.regularization_lambda = regularization_lambda
+		self.absolute_tolerance = absolute_tolerance
 		self.weight_vector = None
 		self.bias = None
 		self._seed = seed
@@ -195,7 +202,7 @@ class MultinomialLogisticRegressionClassifier:
 		return cost
 
 	
-	def fit(self, feature_matrix, output_vector, iterations=100, regularizing_metric=None, return_cost=False):
+	def fit(self, feature_matrix, output_vector, iterations=100, regularizing_metric='L2', return_cost=False):
 		assert(len(np.shape(feature_matrix)) == 2)
 		assert(len(np.shape(output_vector)) == 2)
 		assert(np.shape(feature_matrix)[0] == np.shape(output_vector)[0])
@@ -223,6 +230,9 @@ class MultinomialLogisticRegressionClassifier:
 		print('iteration #0... cost = {}'.format(current_cost))
 		if return_cost: cost_logs.append((current_cost, __epsilon__))
 
+		last_cost = current_cost
+		below_tolerance = False
+
 		# print('initial weights:', self.weight_vector, self.bias)
 		for iter in range(iterations):
 			prediction = self.predict(feature_matrix, rounded=False)
@@ -230,7 +240,7 @@ class MultinomialLogisticRegressionClassifier:
 			bias_gradient = np.sum(prediction - output_matrix, axis=0)
 
 			if regularizing_metric == 'L2':
-				weight_vector_gradient = weight_vector_gradient + self.learning_rate * self.regularization_lambda * self.weight_vector
+				weight_vector_gradient = weight_vector_gradient + self.regularization_lambda / m * self.weight_vector
 
 			self.weight_vector = self.weight_vector - self.learning_rate * weight_vector_gradient
 			self.bias = self.bias - self.learning_rate * bias_gradient
@@ -241,6 +251,11 @@ class MultinomialLogisticRegressionClassifier:
 			if return_cost: cost_logs.append((current_cost, iter+1))
 			# if ((iter+1) % 100 == 0): print('iteration #{}...'.format(iter+1))
 			# print('iteration #{}: {}, {}'.format(iter+1, self.weight_vector, self.bias))
+
+			if absolute_error(last_cost, current_cost) < self.absolute_tolerance:
+				if below_tolerance: break
+				else: below_tolerance = True
+			last_cost = current_cost
 		
 		if return_cost: return cost_logs
 

@@ -8,7 +8,7 @@ import pipeline.memm
 train_data = vlspr.read_train()
 pipeline_id = int(argv[1]) if len(argv) > 1 else 0
 
-memmt = MEMMTagger(learning_rate = 4 * 1e-3)
+memmt = MEMMTagger()
 
 if pipeline_id == 1:
 	memmt = pipeline.memm.PipelineTagger_01()
